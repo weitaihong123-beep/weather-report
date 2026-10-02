@@ -1,5 +1,5 @@
 import './style.css'
-import { weathercode } from './weathercode'
+import { weathercodebiao } from './weathercode'
 //console.log(weathercode[1]["day"])//为什么这里可以索引，它不是对象吗
 
 
@@ -11,11 +11,11 @@ const image = document.getElementById("weather-report")
 let city;
 let weather;
 //获取经纬度
-async function getCoords(params) {
+async function getCoords() {
   if (!(input.value === "")) { city = input.value }
   else {
     display.textContent = "重新输入城市"
-    return {}
+    return
 
   }
   try {
@@ -43,8 +43,7 @@ async function getCoords(params) {
 }
 
 //获取天气
-async function getWeather(latitude,longitude,name) {
-  let data = getCoords()
+async function getWeather(latitude, longitude) {
   try {
     const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`)
     if (!weatherResponse.ok) {
@@ -53,24 +52,12 @@ async function getWeather(latitude,longitude,name) {
 
     };
     const weatherdata = await weatherResponse.json()
-    const {temperature,windspeed,weathercode,is_day}=weatherdata.current_weather
-    if (weathercode[weatherdata.current_weather.weathercode]) {
-      if (weatherdata.current_weather.is_day === 1) {
-        weather = weathercode[weatherdata.current_weather.weathercode].day.description
-        image.src = weathercode[weatherdata.current_weather.weathercode].day.image
-      }
-      else {
-        weather = weathercode[weatherdata.current_weather.weathercode].night.description
-        image.src = weathercode[weatherdata.current_weather.weathercode].night.image
+    const { temperature, windspeed, weathercode, is_day } = weatherdata.current_weather
 
-      }
-      return{temperature,windspeed,weathercode,is_day}
-    }
-    else {
-      weather = "未知"
-    }
-    display.textContent = `地名：${name}温度：${weatherdata.current_weather.temperature} 风速：${weatherdata.current_weather.windspeed} 天气：${weather}`
+    return { temperature, windspeed, weathercode, is_day }
   }
+
+
 
 
 
@@ -78,53 +65,41 @@ async function getWeather(latitude,longitude,name) {
     display.textContent = "网络错误" + reason
 
   }
-  
+
 }
 
-async function weatherTemperature(params) {
-  display.textContent = "loading......"
-  if (!(input.value === "")) { city = input.value }
+//渲染
+function render(name, temperature, windspeed, weathercode, is_day) {
+  if (weathercodebiao[weathercode]) {
+    if (is_day === 1) {
+      weather = weathercodebiao[weathercode].day.description
+      image.src = weathercodebiao[weathercode].day.image
+    }
+    else {
+      weather = weathercodebiao[weathercode].night.description
+      image.src = weathercodebiao[weathercode].night.image
+
+    }
+  }
   else {
-    display.textContent = "重新输入城市"
-    return {}
-
+    weather = "未知"
   }
-
-  try {
-
+  display.textContent = `地名：${name}温度：${temperature} 风速：${windspeed} 天气：${weather}`
 
 
-    // display.textContent = `纬度${data.results[0].latitude} 经度${data.results[0].longitude}  地名${data.results[0].name}`
-    const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${data.results[0].latitude}&longitude=${data.results[0].longitude}&current_weather=true`)
-    if (!weatherResponse.ok) {
-      display.textContent = "加载失败" + weatherResponse.status
-      return
-
-    };
-    const weatherdata = await weatherResponse.json()
-    if (weathercode[weatherdata.current_weather.weathercode]) {
-      if (weatherdata.current_weather.is_day === 1) {
-        weather = weathercode[weatherdata.current_weather.weathercode].day.description
-        image.src = weathercode[weatherdata.current_weather.weathercode].day.image
-      }
-      else {
-        weather = weathercode[weatherdata.current_weather.weathercode].night.description
-        image.src = weathercode[weatherdata.current_weather.weathercode].night.image
-
-      }
-    }
-    else {
-      weather = "未知"
-    }
-    display.textContent = `地名：${data.results[0].name}温度：${weatherdata.current_weather.temperature} 风速：${weatherdata.current_weather.windspeed} 天气：${weather}`
-
-  }
-  catch (reason) {
-    display.textContent = "网络错误" + reason
-
-
-  }
 }
+
+async function weatherTemperature() {
+  display.textContent = "loading..."
+  const 坐标 = await getCoords()
+  if (!坐标){
+    return
+  }
+  const 天气 = await getWeather(坐标.latitude, 坐标.longitude)
+  if(!天气) return
+  render(坐标.name, 天气.temperature, 天气.windspeed, 天气.weathercode, 天气.is_day)
+}
+
 button.addEventListener("click", weatherTemperature)
 
 

@@ -1,4 +1,4 @@
-export const weathercode={
+export const weathercodebiao={
 	"0":{
 		"day":{
 			"description":"Sunny",
